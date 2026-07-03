@@ -35,7 +35,7 @@ class BookController(
         @RequestParam(defaultValue = "5") size: Int,
         @RequestParam(required = false) status: BookStatus?,
         @RequestParam(required = false) sort: String?
-    ): Page<BookEntity> {
+    ): Page<BookResponseDTO> {
         return bookService.getAllBooksWithPage(page, size, status, sort)
     }
 
@@ -69,6 +69,13 @@ class BookController(
     fun deleteBook(@PathVariable("id") id: Long): String {
         bookService.deleteBook(id)
         return "book successfully deleted"
+    }
+
+    @PutMapping("/soft-delete/{id}")
+    fun softDeleteBook(
+        @PathVariable id: Long
+    ): BookResponseDTO? {
+        return bookService.softDeleteBook(id)
     }
 
 

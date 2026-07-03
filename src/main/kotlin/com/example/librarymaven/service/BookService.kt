@@ -10,7 +10,7 @@ interface BookService {
 
     fun getAllBooks(): List<BookResponseDTO>
 
-    fun getAllBooksWithPage(page: Int, size: Int, status: BookStatus?, sort: String?): Page<BookEntity>
+    fun getAllBooksWithPage(page: Int, size: Int, status: BookStatus?, sort: String?): Page<BookResponseDTO>
 
     fun findByID(id: Long): BookResponseDTO?
 
@@ -19,4 +19,6 @@ interface BookService {
     fun updateBook(id: Long, request: CreateBookRequestDTO): BookResponseDTO
 
     fun deleteBook(id: Long)
+
+    fun softDeleteBook(id: Long): BookResponseDTO?
 }

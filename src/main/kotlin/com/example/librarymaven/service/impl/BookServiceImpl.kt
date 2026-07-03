@@ -53,7 +53,7 @@ class BookServiceImpl(
             }
 
 
-    override fun getAllBooksWithPage(page: Int, size: Int, status: BookStatus?, sort: String?): Page<BookEntity> {
+    override fun getAllBooksWithPage(page: Int, size: Int, status: BookStatus?, sort: String?): Page<BookResponseDTO> {
 
         val direction = if (sort?.lowercase() == "asc") {
             Sort.Direction.ASC
@@ -72,14 +72,16 @@ class BookServiceImpl(
         } else {
             bookRepository.findAll(pagable)
         }
+        .map { toBookResponseDTO(it) }
     }
 
-    override fun findByID(id: Long): BookResponseDTO? {
-        return bookRepository.findById(id)
-            .map { toBookResponseDTO(it) }
-            .orElse(null)
+    override fun findByID(id: Long): BookResponseDTO {
+        val book = bookRepository.findById(id)
+            .orElseThrow {
+                ResponseStatusException(HttpStatus.NOT_FOUND, "Book with this ${id} not found")
+            }
 
-
+        return toBookResponseDTO(book)
     }
 
     override fun createBook(request: CreateBookRequestDTO): BookResponseDTO {
@@ -157,5 +159,20 @@ class BookServiceImpl(
         }
 
         return bookRepository.deleteById(id)
+    }
+
+    override fun softDeleteBook(id: Long): BookResponseDTO? {
+
+        val book = bookRepository.findById(id)
+            .orElseThrow {
+                ResponseStatusException(HttpStatus.NOT_FOUND, "Book not found")
+            }
+
+        book.status = false
+        book.updatedAt = LocalDateTime.now()
+
+        val deletedBook = bookRepository.save(book)
+
+        return toBookResponseDTO(deletedBook)
     }
 }
