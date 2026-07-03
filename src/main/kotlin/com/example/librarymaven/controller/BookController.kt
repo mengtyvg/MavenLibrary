@@ -25,7 +25,7 @@ class BookController(
 ) {
 
     @GetMapping("/all")
-    fun getAllBooks(): List<BookEntity> {
+    fun getAllBooks(): List<BookResponseDTO> {
         return bookService.getAllBooks()
     }
 
@@ -43,7 +43,7 @@ class BookController(
 
 
     @GetMapping("/{id}")
-    fun getById(@PathVariable("id") id: Long): BookEntity? {
+    fun getById(@PathVariable("id") id: Long): BookResponseDTO? {
         return bookService.findByID(id)
     }
 

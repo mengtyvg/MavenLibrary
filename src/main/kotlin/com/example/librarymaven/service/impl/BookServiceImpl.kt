@@ -15,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlin.collections.map
 
 
 @Service
@@ -22,9 +23,35 @@ class BookServiceImpl(
     val bookRepository: BookRepository
 ) : BookService {
 
-    override fun getAllBooks(): List<BookEntity> {
-        return bookRepository.findAll()
+    private val formatter = DateTimeFormatter.ofPattern(
+        "EEEE d MMMM yyyy, h:mm a",
+        Locale.ENGLISH
+    )
+
+
+        // auto convert entity to dto
+    private fun toBookResponseDTO(book: BookEntity): BookResponseDTO {
+        return BookResponseDTO(
+            id = book.id,
+            title = book.title,
+            author = book.author,
+            isbn = book.isbn,
+            bookStatus = BookStatus.valueOf(book.bookStatus ?: BookStatus.NEW.name),
+            updatedDate = formatter.format(book.updatedAt)
+        )
     }
+
+
+
+
+
+
+
+    override fun getAllBooks(): List<BookResponseDTO> {
+        return bookRepository.findAll()
+            .map { toBookResponseDTO(it) }
+            }
+
 
     override fun getAllBooksWithPage(page: Int, size: Int, status: BookStatus?, sort: String?): Page<BookEntity> {
 
@@ -47,8 +74,12 @@ class BookServiceImpl(
         }
     }
 
-    override fun findByID(id: Long): BookEntity? {
-        return bookRepository.findById(id).orElse(null)
+    override fun findByID(id: Long): BookResponseDTO? {
+        return bookRepository.findById(id)
+            .map { toBookResponseDTO(it) }
+            .orElse(null)
+
+
     }
 
     override fun createBook(request: CreateBookRequestDTO): BookResponseDTO {
@@ -71,14 +102,7 @@ class BookServiceImpl(
 
         val savedBook = bookRepository.save(book)
 
-        return BookResponseDTO(
-            id = savedBook.id,
-            title = savedBook.title,
-            author = savedBook.author,
-            isbn = savedBook.isbn,
-            bookStatus = BookStatus.valueOf(savedBook.bookStatus ?: BookStatus.NEW.name),
-            updatedDate = savedBook.updatedAt.toString()
-        )
+        return toBookResponseDTO(savedBook)
     }
 
     override fun updateBook(id: Long, request: CreateBookRequestDTO): BookResponseDTO {
@@ -121,17 +145,10 @@ class BookServiceImpl(
 
         val updatedBook = bookRepository.save(book)
 
-        val formatter = DateTimeFormatter.ofPattern("EEEE d MMMM yyyy, HH:mm a", Locale.ENGLISH)
+        //val formatter = DateTimeFormatter.ofPattern("EEEE d MMMM yyyy, HH:mm a", Locale.ENGLISH)
 
 
-        return BookResponseDTO(
-            id = updatedBook.id,
-            title = updatedBook.title,
-            author = updatedBook.author,
-            isbn = updatedBook.isbn,
-            bookStatus = BookStatus.valueOf(updatedBook.bookStatus ?: BookStatus.NEW.name),
-            updatedDate = formatter.format(updatedBook.updatedAt)
-        )
+        return toBookResponseDTO(updatedBook)
     }
 
     override fun deleteBook(id: Long) {

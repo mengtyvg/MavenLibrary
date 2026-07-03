@@ -8,11 +8,11 @@ import org.springframework.data.domain.Page
 
 interface BookService {
 
-    fun getAllBooks(): List<BookEntity>
+    fun getAllBooks(): List<BookResponseDTO>
 
     fun getAllBooksWithPage(page: Int, size: Int, status: BookStatus?, sort: String?): Page<BookEntity>
 
-    fun findByID(id: Long): BookEntity?
+    fun findByID(id: Long): BookResponseDTO?
 
     fun createBook(request: CreateBookRequestDTO): BookResponseDTO
 
