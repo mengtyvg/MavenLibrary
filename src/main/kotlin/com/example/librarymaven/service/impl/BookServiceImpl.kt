@@ -47,10 +47,15 @@ class BookServiceImpl(
 
 
 
-    override fun getAllBooks(): List<BookResponseDTO> {
-        return bookRepository.findAll()
-            .map { toBookResponseDTO(it) }
-            }
+//    override fun getAllBooks(): List<BookResponseDTO> {
+//        return bookRepository.findAll()
+//            .map { toBookResponseDTO(it) }
+//            }
+
+    override fun getBookWithStatusTrue(): List<BookResponseDTO> {
+        return bookRepository.findByStatusTrue()
+            .map { book -> toBookResponseDTO(book) }
+    }
 
 
     override fun getAllBooksWithPage(page: Int, size: Int, status: BookStatus?, sort: String?): Page<BookResponseDTO> {

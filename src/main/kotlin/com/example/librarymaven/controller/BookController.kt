@@ -26,7 +26,7 @@ class BookController(
 
     @GetMapping("/all")
     fun getAllBooks(): List<BookResponseDTO> {
-        return bookService.getAllBooks()
+        return bookService.getBookWithStatusTrue()
     }
 
     @GetMapping("/page")
