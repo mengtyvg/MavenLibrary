@@ -23,12 +23,18 @@ class BorrowRecordServiceImpl(
 
 
     @Transactional
-    override fun borrowBook(request: CreateBorrowRecordRequestDTO): BorrowRecordResponseDTO{
+    override fun borrowBook(request: CreateBorrowRecordRequestDTO): BorrowRecordResponseDTO {
         val bookId = request.bookId
-            ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Book ID is required")
+            ?: throw ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Book ID is required"
+            )
 
         val memberId = request.memberId
-            ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Member ID is required")
+            ?: throw ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Member ID is required"
+            )
 
         val book = bookRepository.findById(bookId)
             .orElseThrow {
@@ -46,19 +52,47 @@ class BorrowRecordServiceImpl(
                 )
             }
 
+        if (book.status == false) {
+            throw ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "This book has been deleted or is inactive"
+            )
+        }
+
+        if (book.bookStatus == BookStatus.BORROW.name) {
+            throw ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "This book is already borrowed"
+            )
+        }
+
+        val hasActiveBorrowRecord = borrowRecordRepository.findByBookId(bookId)
+            .any { record ->
+                record.status == BookStatus.BORROW.name && record.returnDate == null
+            }
+
+        if (hasActiveBorrowRecord) {
+            throw ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "This book already has an active borrow record"
+            )
+        }
+
         val borrowRecord = BorrowRecordEntity(
             book = book,
             member = member,
-            status = "BORROW"
+            borrowDate = LocalDateTime.now(),
+            returnDate = null,
+            status = BookStatus.BORROW.name
         )
 
+        book.bookStatus = BookStatus.BORROW.name
+        book.updatedAt = LocalDateTime.now()
+
+        bookRepository.save(book)
         val savedBorrowRecord = borrowRecordRepository.save(borrowRecord)
 
         return toBorrowRecordResponseDTO(savedBorrowRecord)
-
-
-
-
     }
 
 
