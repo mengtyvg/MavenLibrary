@@ -3,6 +3,7 @@ package com.example.librarymaven.service.impl
 import com.example.librarymaven.dto.BorrowRecordResponseDTO
 import com.example.librarymaven.dto.CreateBorrowRecordRequestDTO
 import com.example.librarymaven.entity.BookStatus
+import org.springframework.transaction.annotation.Transactional
 import com.example.librarymaven.entity.BorrowRecordEntity
 import com.example.librarymaven.repository.BookRepository
 import com.example.librarymaven.repository.BorrowRecordRepository
@@ -20,6 +21,8 @@ class BorrowRecordServiceImpl(
     private val memberRepository: MemberRepository
 ) : BorrowRecordService {
 
+
+    @Transactional
     override fun borrowBook(request: CreateBorrowRecordRequestDTO): BorrowRecordResponseDTO{
         val bookId = request.bookId
             ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Book ID is required")
@@ -46,7 +49,7 @@ class BorrowRecordServiceImpl(
         val borrowRecord = BorrowRecordEntity(
             book = book,
             member = member,
-            status = "BORROWED"
+            status = "BORROW"
         )
 
         val savedBorrowRecord = borrowRecordRepository.save(borrowRecord)
@@ -58,6 +61,8 @@ class BorrowRecordServiceImpl(
 
     }
 
+
+    @Transactional
     override fun returnBook(borrowRecordId: Long): BorrowRecordResponseDTO {
 
         val borrowRecord = borrowRecordRepository.findById(borrowRecordId)
@@ -81,7 +86,7 @@ class BorrowRecordServiceImpl(
                 "Book not found in this borrow record"
             )
 
-        borrowRecord.status = "RETURNED"
+        borrowRecord.status = "RETURN"
         borrowRecord.returnDate = LocalDateTime.now()
 
         book.bookStatus = "RETURN"
