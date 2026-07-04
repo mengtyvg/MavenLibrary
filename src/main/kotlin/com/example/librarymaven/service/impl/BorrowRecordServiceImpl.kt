@@ -58,8 +58,43 @@ class BorrowRecordServiceImpl(
 
     }
 
-    override fun returnBook(id: Long): BorrowRecordResponseDTO{
-        TODO("Not yet implemented")
+    override fun returnBook(borrowRecordId: Long): BorrowRecordResponseDTO {
+
+        val borrowRecord = borrowRecordRepository.findById(borrowRecordId)
+            .orElseThrow {
+                ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Borrow record ID $borrowRecordId not found"
+                )
+            }
+
+        if (borrowRecord.status == "RETURNED") {
+            throw ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "This book has already been returned"
+            )
+        }
+
+        val book = borrowRecord.book
+            ?: throw ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Book not found in this borrow record"
+            )
+
+        borrowRecord.status = "RETURNED"
+        borrowRecord.returnDate = LocalDateTime.now()
+
+        book.bookStatus = "RETURN"
+        book.updatedAt = LocalDateTime.now()
+
+        bookRepository.save(book)
+
+        val updatedBorrowRecord = borrowRecordRepository.save(borrowRecord)
+
+        return toBorrowRecordResponseDTO(updatedBorrowRecord)
+
+
+
 
     }
 
