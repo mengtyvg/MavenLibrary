@@ -3,6 +3,7 @@ package com.example.librarymaven.dto
 import com.example.librarymaven.entity.BookStatus
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
+import java.io.Serializable
 
 
 data class CreateBookRequestDTO(
@@ -26,4 +27,4 @@ data class BookResponseDTO(
     val isbn: String?,
     val bookStatus: BookStatus?,
     val updatedDate: String?
-)
+): Serializable

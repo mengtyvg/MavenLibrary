@@ -6,6 +6,7 @@ import com.example.librarymaven.entity.BookEntity
 import com.example.librarymaven.entity.BookStatus
 import com.example.librarymaven.repository.BookRepository
 import com.example.librarymaven.service.BookService
+import org.springframework.cache.annotation.CacheEvict
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
@@ -16,6 +17,8 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.collections.map
+import org.springframework.cache.annotation.Cacheable
+import org.springframework.cache.annotation.Caching
 
 
 @Service
@@ -51,13 +54,16 @@ class BookServiceImpl(
 //        return bookRepository.findAll()
 //            .map { toBookResponseDTO(it) }
 //            }
-
+    @Cacheable("booksList", key = "'list'")
     override fun getBookWithStatusTrue(): List<BookResponseDTO> {
+        println("getting books from db where status true cache testing")
         return bookRepository.findByStatusTrue()
             .map { book -> toBookResponseDTO(book) }
     }
 
-
+    @Cacheable(
+        value = ["booksPagination"],
+        key = "'page=' + #page + ':size=' + #size + ':status=' + #status + ':sort=' + #sort")
     override fun getAllBooksWithPage(page: Int, size: Int, status: BookStatus?, sort: String?): Page<BookResponseDTO> {
 
         val direction = if (sort?.lowercase() == "asc") {
@@ -80,7 +86,9 @@ class BookServiceImpl(
         .map { toBookResponseDTO(it) }
     }
 
+    @Cacheable(value = ["books"], key = "#id")
     override fun findByID(id: Long): BookResponseDTO {
+        println("Getting book from database... ID = $id")
         val book = bookRepository.findById(id)
             .orElseThrow {
                 ResponseStatusException(HttpStatus.NOT_FOUND, "Book with this ${id} not found")
@@ -89,6 +97,12 @@ class BookServiceImpl(
         return toBookResponseDTO(book)
     }
 
+    @Caching(
+        evict = [
+            CacheEvict(value = ["booksList"], allEntries = true),
+            CacheEvict(value = ["booksPagination"], allEntries = true)
+        ]
+    )
     override fun createBook(request: CreateBookRequestDTO): BookResponseDTO {
         val title = request.title?.trim()
         val author = request.author?.trim()
@@ -112,6 +126,14 @@ class BookServiceImpl(
         return toBookResponseDTO(savedBook)
     }
 
+
+    @Caching(
+        evict = [
+            CacheEvict(value = ["books"], key = "#id"),
+            CacheEvict(value = ["booksList"], allEntries = true),
+            CacheEvict(value = ["booksPagination"], allEntries = true)
+        ]
+    )
     override fun updateBook(id: Long, request: CreateBookRequestDTO): BookResponseDTO {
         val book = bookRepository.findById(id)
             .orElseThrow {
@@ -158,6 +180,14 @@ class BookServiceImpl(
         return toBookResponseDTO(updatedBook)
     }
 
+
+    @Caching(
+        evict = [
+            CacheEvict(value = ["books"], key = "#id"),
+            CacheEvict(value = ["booksList"], allEntries = true),
+            CacheEvict(value = ["booksPagination"], allEntries = true)
+        ]
+    )
     override fun deleteBook(id: Long) {
         if (!bookRepository.existsById(id)) {
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "Book not found")
@@ -166,6 +196,14 @@ class BookServiceImpl(
         return bookRepository.deleteById(id)
     }
 
+
+    @Caching(
+        evict = [
+            CacheEvict(value = ["books"], key = "#id"),
+            CacheEvict(value = ["booksList"], allEntries = true),
+            CacheEvict(value = ["booksPagination"], allEntries = true)
+        ]
+    )
     override fun softDeleteBook(id: Long): BookResponseDTO? {
 
         val book = bookRepository.findById(id)
@@ -180,4 +218,20 @@ class BookServiceImpl(
 
         return toBookResponseDTO(deletedBook)
     }
+
+
+
+    //cahcing section
+
+//    @Cacheable(value = ["books"], key = "#id")
+//    override fun findByID(id: Long): BookResponseDTO{
+//        val book = bookRepository.findById(id)
+//            .orElseThrow {
+//                ResponseStatusException(HttpStatus.NOT_FOUND, "Book with this ${id} not found")
+//            }
+//
+//        return toBookResponseDTO(book)
+//    }
+
+
 }
