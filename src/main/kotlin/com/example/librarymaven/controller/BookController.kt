@@ -1,5 +1,6 @@
 package com.example.librarymaven.controller
 
+import com.example.librarymaven.dto.BookPageResponseDTO
 import com.example.librarymaven.dto.BookResponseDTO
 import com.example.librarymaven.dto.CreateBookRequestDTO
 import com.example.librarymaven.entity.BookEntity
@@ -35,7 +36,7 @@ class BookController(
         @RequestParam(defaultValue = "5") size: Int,
         @RequestParam(required = false) status: BookStatus?,
         @RequestParam(required = false) sort: String?
-    ): Page<BookResponseDTO> {
+    ): BookPageResponseDTO {
         return bookService.getAllBooksWithPage(page, size, status, sort)
     }
 

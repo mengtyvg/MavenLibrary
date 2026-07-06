@@ -1,5 +1,6 @@
 package com.example.librarymaven.service.impl
 
+import com.example.librarymaven.dto.BookPageResponseDTO
 import com.example.librarymaven.dto.BookResponseDTO
 import com.example.librarymaven.dto.CreateBookRequestDTO
 import com.example.librarymaven.entity.BookEntity
@@ -64,7 +65,7 @@ class BookServiceImpl(
     @Cacheable(
         value = ["booksPagination"],
         key = "'page=' + #page + ':size=' + #size + ':status=' + #status + ':sort=' + #sort")
-    override fun getAllBooksWithPage(page: Int, size: Int, status: BookStatus?, sort: String?): Page<BookResponseDTO> {
+    override fun getAllBooksWithPage(page: Int, size: Int, status: BookStatus?, sort: String?): BookPageResponseDTO {
 
         val direction = if (sort?.lowercase() == "asc") {
             Sort.Direction.ASC
@@ -78,12 +79,22 @@ class BookServiceImpl(
             Sort.by(direction, "createdAt")
         )
 
-        return if (status != null) {
+        val bookPage = if (status != null) {
             bookRepository.findByBookStatus(status.name, pagable)
         } else {
             bookRepository.findAll(pagable)
         }
-        .map { toBookResponseDTO(it) }
+
+        val content = bookPage.content.map { book -> toBookResponseDTO(book) }
+
+        return BookPageResponseDTO(
+            content = content,
+            page = bookPage.number,
+            size = bookPage.size,
+            totalElements = bookPage.totalElements,
+            totalPages = bookPage.totalPages,
+            last = bookPage.isLast
+        )
     }
 
     @Cacheable(value = ["books"], key = "#id")
@@ -221,17 +232,7 @@ class BookServiceImpl(
 
 
 
-    //cahcing section
 
-//    @Cacheable(value = ["books"], key = "#id")
-//    override fun findByID(id: Long): BookResponseDTO{
-//        val book = bookRepository.findById(id)
-//            .orElseThrow {
-//                ResponseStatusException(HttpStatus.NOT_FOUND, "Book with this ${id} not found")
-//            }
-//
-//        return toBookResponseDTO(book)
-//    }
 
 
 }

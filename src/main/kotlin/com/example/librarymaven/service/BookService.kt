@@ -1,5 +1,6 @@
 package com.example.librarymaven.service
 
+import com.example.librarymaven.dto.BookPageResponseDTO
 import com.example.librarymaven.dto.BookResponseDTO
 import com.example.librarymaven.dto.CreateBookRequestDTO
 import com.example.librarymaven.entity.BookEntity
@@ -10,7 +11,7 @@ interface BookService {
 
 //    fun getAllBooks(): List<BookResponseDTO>
 
-    fun getAllBooksWithPage(page: Int, size: Int, status: BookStatus?, sort: String?): Page<BookResponseDTO>
+    fun getAllBooksWithPage(page: Int, size: Int, status: BookStatus?, sort: String?): BookPageResponseDTO
 
     fun findByID(id: Long): BookResponseDTO?
 

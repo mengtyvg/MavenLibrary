@@ -28,3 +28,15 @@ data class BookResponseDTO(
     val bookStatus: BookStatus?,
     val updatedDate: String?
 ): Serializable
+
+
+//Book with pagination response dto for redis
+
+data class BookPageResponseDTO(
+    val content: List<BookResponseDTO>,
+    val page: Int,
+    val size: Int,
+    val totalElements: Long,
+    val totalPages: Int,
+    val last: Boolean
+) : Serializable
